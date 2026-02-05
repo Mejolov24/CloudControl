@@ -1,22 +1,25 @@
-[gd_scene load_steps=8 format=3 uid="uid://cbwtr0wmttotn"]
+[gd_scene load_steps=5 format=3 uid="uid://cbwtr0wmttotn"]
 
-[ext_resource type="Script" uid="uid://dl88nn61xd6cj" path="res://assets/scripts/Main.gd" id="1_npkpr"]
+[ext_resource type="Script" uid="uid://dl88nn61xd6cj" path="res://assets/scripts/node_2d.gd" id="1_npkpr"]
 [ext_resource type="PackedScene" uid="uid://ng8c7l524kn7" path="res://assets/scenes/Button.tscn" id="2_eruk6"]
 [ext_resource type="Theme" uid="uid://d0ku8sc22vh5l" path="res://assets/others/ui.tres" id="2_xt100"]
 [ext_resource type="PackedScene" uid="uid://blhbho40h5585" path="res://assets/scenes/audio_stream_player.tscn" id="3_jv468"]
-[ext_resource type="Texture2D" uid="uid://726loubhf0xr" path="res://assets/icons/both.svg" id="4_3qypx"]
-[ext_resource type="Texture2D" uid="uid://cxfpr724yhw02" path="res://assets/icons/square.svg" id="5_ajan2"]
-[ext_resource type="Texture2D" uid="uid://c715t8qjwxacl" path="res://assets/icons/circle.svg" id="6_cb1w8"]
 
-[node name="Main" type="Node2D" node_paths=PackedStringArray("grid", "octave_number", "scale_selector", "slider")]
+[node name="Node2D" type="Node2D" node_paths=PackedStringArray("slider")]
 script = ExtResource("1_npkpr")
-grid = NodePath("center/CenterContainer/GridContainer")
-octave_number = NodePath("right/octave_changer")
-scale_selector = NodePath("top/scale_selector")
-slider = NodePath("right/left/VSlider")
+slider = NodePath("left/VSlider")
 button_scene = ExtResource("2_eruk6")
 stream_player = ExtResource("3_jv468")
-button_icons = Array[CompressedTexture2D]([ExtResource("4_3qypx"), ExtResource("5_ajan2"), ExtResource("6_cb1w8"), ExtResource("5_ajan2"), ExtResource("6_cb1w8"), ExtResource("5_ajan2"), ExtResource("6_cb1w8")])
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GridContainer" type="GridContainer" parent="CenterContainer"]
+layout_mode = 2
 
 [node name="Camera2D" type="Camera2D" parent="."]
 
@@ -230,12 +233,13 @@ rotation = -3.1415927
 theme = ExtResource("2_xt100")
 text = ">"
 
-[node name="left" type="Control" parent="right"]
+[node name="left" type="Control" parent="."]
+layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="VSlider" type="VSlider" parent="right/left"]
+[node name="VSlider" type="VSlider" parent="left"]
 layout_mode = 0
 offset_left = -568.0
 offset_top = -144.0
@@ -245,7 +249,7 @@ theme = ExtResource("2_xt100")
 max_value = 16383.0
 value = 8192.0
 
-[node name="Label" type="Label" parent="right/left/VSlider"]
+[node name="Label" type="Label" parent="left/VSlider"]
 layout_mode = 0
 offset_top = -48.0
 offset_right = 128.0
@@ -306,23 +310,6 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="center" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="CenterContainer" type="CenterContainer" parent="center"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="GridContainer" type="GridContainer" parent="center/CenterContainer"]
-layout_mode = 2
-
 [connection signal="toggled" from="right/CheckButton" to="." method="_on_check_button_toggled"]
 [connection signal="pressed" from="right/octave_changer/plus" to="." method="_on_plus_pressed"]
 [connection signal="pressed" from="right/octave_changer/minus" to="." method="_on_minus_pressed"]
@@ -332,8 +319,8 @@ layout_mode = 2
 [connection signal="pressed" from="right/columns/columm" to="." method="_on_columm_pressed"]
 [connection signal="pressed" from="right/rows/rowp" to="." method="_on_rowp_pressed"]
 [connection signal="pressed" from="right/rows/rowm" to="." method="_on_rowm_pressed"]
-[connection signal="changed" from="right/left/VSlider" to="." method="_on_v_slider_changed"]
-[connection signal="drag_ended" from="right/left/VSlider" to="." method="_on_v_slider_drag_ended"]
+[connection signal="changed" from="left/VSlider" to="." method="_on_v_slider_changed"]
+[connection signal="drag_ended" from="left/VSlider" to="." method="_on_v_slider_drag_ended"]
 [connection signal="item_selected" from="top/scale_selector" to="." method="_on_scale_selector_item_selected"]
 [connection signal="text_changed" from="top/osc_ip" to="." method="_on_osc_ip_text_changed"]
 [connection signal="text_changed" from="top/osc_port" to="." method="_on_osc_port_text_changed"]

@@ -14,14 +14,13 @@ var semitone : int = 0
 var columns : int = 5
 var rows : int = 3
 var total_buttons : int = 0
-@onready var grid = $CenterContainer/GridContainer
-@onready var octave_number = $octave_changer/octave
-@onready var scale_selector = $scale_selector
-@onready var output_selector = $output_selector
+@export var grid : GridContainer
+@export var octave_number : Node
+@export var scale_selector : OptionButton
 @export var slider : VSlider
-var button_scene = preload("res://Button.tscn")
-var stream_player = preload("res://audio_stream_player.tscn")
-var button_images : PackedStringArray = ["res://both.svg","res://square.svg","res://circle.svg","res://square.svg","res://circle.svg","res://square.svg","res://circle.svg"]
+@export var button_scene : PackedScene
+@export var stream_player : PackedScene
+@export var button_icons : Array[CompressedTexture2D]
 var sustain : bool = false
 var midi_on : bool = false
 var sound : bool = false
@@ -131,7 +130,7 @@ func update_buttons_note(scale : Array):
 		var wrapper = grid.get_children()[i]
 		var button = wrapper.get_children()[0]
 		var note_in_array = selected_scale[i % selected_scale.size()]
-		var octave_ = i / selected_scale.size() # División entera
+		var octave_ = i / selected_scale.size() 
 		var note = calculate_note(note_in_array,octave_)
 		button.name = str(note)
 		if button.get_node("TouchScreenButton").get_signal_list().size() != 0:
@@ -145,7 +144,7 @@ func update_buttons_note(scale : Array):
 		else:
 			a = 0
 		print(a)
-		button.get_node("TouchScreenButton").texture_normal = load(button_images[a])
+		button.get_node("TouchScreenButton").texture_normal = button_icons[a]
 
 func reload_buttons(_collumns: int, _rows : int):
 	if total_buttons != 0:
