@@ -24,13 +24,25 @@ Cloud keys (Mobile)
 |🚫 Midi Input| Godot limitations |
 |🚫 Midi Output| Godot limitations |
 
+## UI
+![Alt text](https://github.com/SGM24/CloudControl/blob/main/screenshots/Captura%20de%20pantalla%202026-02-09%20172238.png?raw=true)
+## Colors
+![Alt text](https://github.com/SGM24/CloudControl/blob/main/screenshots/V%C3%ADdeo%20sin%20t%C3%ADtulo%20%E2%80%90%20Hecho%20con%20Clipchamp.gif?raw=true)
+
+
 Cloud Router (Desktop)
 | Features | But... |
 | --- | --- |
 |✅ UDP Router| Needs better UI |
 |🛑 Midi Transposer|
-|🛑 Midi autoclicker|
+|✅ Midi autoclicker|
 |✅ Midi Input|
 |✅ Midi Output|
 
+## Main menu
+![Alt text](https://github.com/SGM24/CloudControl/blob/main/screenshots/Captura%20de%20pantalla%202026-02-09%20162754.png?raw=true)
+## Midi output
+![Alt text](https://github.com/SGM24/CloudControl/blob/main/screenshots/Captura%20de%20pantalla%202026-02-09%20162801.png?raw=true)
+# Keyboard Macro
+![Alt text](https://github.com/SGM24/CloudControl/blob/main/screenshots/Captura%20de%20pantalla%202026-02-09%20162853.png?raw=true)
 
