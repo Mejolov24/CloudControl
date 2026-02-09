@@ -13,6 +13,9 @@ you can use the app simply as a piano, or connect it to CloudRouter to use it as
 all you have to do is open CloudKeys and select the mode you want, click the wifi settings, set up the number that is next to the port at CloudRouter onto the "ip" text box, thats your ip
 by default the port is 700, if you want to change it you have to change it both on CloudRouter and on CloudKeys
 
+## Proyect status:
+Current Release : Alpha V1.0
+
 | Emojis |
 | --- |
 |🚫 Not planned / Not posible|
