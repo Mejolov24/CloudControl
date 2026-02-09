@@ -1,9 +1,17 @@
 # CloudControl
+Made in Godot Engine.
+
 Midi tool set for the game Sky: Children of the light
 This app is mainly focused on the musical side of the game.
 
 Since godot for andorid at these moments lacks the ability of a midi output, we have to use Cloudrouter wich is the midi toolset for the game, It will take UDP packets from Cloudkeys and convert them into midi output and keyboard macro for easy music playing on PC 
 As of now, i only have Windows and android planned since the low popularity of this app.
+
+## How to use:
+Its quite simple!
+you can use the app simply as a piano, or connect it to CloudRouter to use it as a midi controller, or a touchscreen when playing sky on pc!
+all you have to do is open CloudKeys and select the mode you want, click the wifi settings, set up the number that is next to the port at CloudRouter onto the "ip" text box, thats your ip
+by default the port is 700, if you want to change it you have to change it both on CloudRouter and on CloudKeys
 
 | Emojis |
 | --- |
