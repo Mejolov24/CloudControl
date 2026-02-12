@@ -15,6 +15,10 @@ run/main_scene="uid://cbwtr0wmttotn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://assets/icons/icon.svg"
 
+[autoload]
+
+GithubReleaseChecker="*res://assets/scripts/github_release_checker.gd"
+
 [display]
 
 window/stretch/mode="canvas_items"
