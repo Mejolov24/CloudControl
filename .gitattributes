@@ -1,4 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
-from language statistics
+
+# Language Statistics Overrides
 PC/Python/build/MacroHandler* linguist-documentation
+screenshots/* linguist-documentation
+*.gd linguist-detectable
