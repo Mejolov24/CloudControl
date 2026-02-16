@@ -21,7 +21,7 @@
 shader = ExtResource("10_cfala")
 shader_parameter/alpha_multiplier = 2.000000095
 
-[node name="Main" type="CanvasLayer" node_paths=PackedStringArray("grid", "octave_number", "columns_text", "rows_text", "semitone_text", "scale_selector", "slider", "center", "top", "top2", "bottom", "left", "right", "color_picker", "graphs", "settings_buttons", "tick", "tock", "metronome_player", "signature_text_1", "signature_text_2")]
+[node name="Main" type="CanvasLayer" node_paths=PackedStringArray("grid", "octave_number", "columns_text", "rows_text", "semitone_text", "scale_selector", "slider", "record_button", "play_button", "center", "top", "top2", "bottom", "left", "right", "color_picker", "graphs", "settings_buttons", "tick", "metronome_player", "signature_text_1", "signature_text_2", "channel_text_1")]
 script = ExtResource("1_npkpr")
 grid = NodePath("center/CenterContainer/GridContainer")
 octave_number = NodePath("right/octave_changer/octave")
@@ -30,6 +30,8 @@ rows_text = NodePath("right/rows/octave")
 semitone_text = NodePath("right/semitone_changer/octave")
 scale_selector = NodePath("right/scale_selector")
 slider = NodePath("left/pitch_bend")
+record_button = NodePath("top2/Record")
+play_button = NodePath("top2/Play")
 button_scene = ExtResource("2_eruk6")
 stream_player = ExtResource("3_jv468")
 button_icons = Array[CompressedTexture2D]([ExtResource("4_3qypx"), ExtResource("5_ajan2"), ExtResource("6_cb1w8"), ExtResource("5_ajan2"), ExtResource("6_cb1w8"), ExtResource("5_ajan2"), ExtResource("6_cb1w8")])
@@ -44,12 +46,12 @@ color_picker = NodePath("color_picker")
 graphs = NodePath("graphs")
 settings_buttons = NodePath("bottom/control")
 tick = NodePath("top2/tick")
-tock = NodePath("")
 tick_sfx = ExtResource("8_npyhb")
 tock_sfx = ExtResource("9_0lpbn")
 metronome_player = NodePath("top2/metronome_player")
 signature_text_1 = NodePath("top2/signature_1/current_signature")
 signature_text_2 = NodePath("top2/signature_2/current_signature")
+channel_text_1 = NodePath("top2/Channel/current_channel")
 
 [node name="center" type="Control" parent="."]
 layout_mode = 3
@@ -127,11 +129,26 @@ offset_right = 20.0
 offset_bottom = 40.0
 grow_horizontal = 2
 
+[node name="tick" type="Timer" parent="top2"]
+
+[node name="metronome_player" type="AudioStreamPlayer" parent="top2"]
+volume_db = -5.0
+
+[node name="Play" type="CheckBox" parent="top2"]
+layout_mode = 0
+offset_left = -556.0
+offset_top = -64.0
+offset_right = -479.0
+offset_bottom = -6.0
+theme = ExtResource("2_xt100")
+text = "▶️"
+alignment = 1
+
 [node name="Record" type="CheckBox" parent="top2"]
 layout_mode = 0
-offset_left = -492.0
+offset_left = -460.0
 offset_top = -64.0
-offset_right = -415.0
+offset_right = -383.0
 offset_bottom = -6.0
 theme = ExtResource("2_xt100")
 text = "🔴"
@@ -146,11 +163,6 @@ offset_bottom = -6.0
 theme = ExtResource("2_xt100")
 text = "⏱️"
 alignment = 1
-
-[node name="tick" type="Timer" parent="top2"]
-
-[node name="metronome_player" type="AudioStreamPlayer" parent="top2"]
-volume_db = -5.0
 
 [node name="bpm" type="LineEdit" parent="top2"]
 layout_mode = 0
@@ -242,6 +254,55 @@ theme = ExtResource("2_xt100")
 text = "<"
 
 [node name="signature_2_minus" type="Button" parent="top2/signature_2"]
+layout_mode = 0
+offset_left = -3.0000057
+offset_top = 106.31534
+offset_right = 25.999994
+offset_bottom = 164.31534
+rotation = -3.1415927
+theme = ExtResource("2_xt100")
+text = ">"
+
+[node name="Label" type="Label" parent="top2"]
+layout_mode = 0
+offset_left = 204.0
+offset_top = -64.0
+offset_right = 250.0
+offset_bottom = -8.0
+theme = ExtResource("2_xt100")
+text = "Ch"
+vertical_alignment = 1
+
+[node name="Channel" type="Control" parent="top2"]
+anchors_preset = 0
+offset_left = 292.0
+offset_top = -112.0
+offset_right = 332.0
+offset_bottom = -72.0
+
+[node name="current_channel" type="Label" parent="top2/Channel"]
+layout_mode = 0
+offset_left = -11.000006
+offset_top = 50.31534
+offset_right = 44.999992
+offset_bottom = 100.31534
+theme = ExtResource("2_xt100")
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="channel_plus" type="Button" parent="top2/Channel"]
+layout_mode = 0
+offset_left = 68.99999
+offset_top = 106.31534
+offset_right = 98.0
+offset_bottom = 164.31534
+rotation = -9.424778
+scale = Vector2(1.0143571, 1.005437)
+theme = ExtResource("2_xt100")
+text = "<"
+
+[node name="channel_minus" type="Button" parent="top2/Channel"]
 layout_mode = 0
 offset_left = -3.0000057
 offset_top = 106.31534
@@ -750,14 +811,17 @@ text = "No
 [connection signal="text_changed" from="top/osc_port" to="." method="_on_osc_port_text_changed"]
 [connection signal="pressed" from="top/Button" to="." method="_on_button_pressed"]
 [connection signal="toggled" from="top/sound" to="." method="_on_sound_toggled"]
+[connection signal="timeout" from="top2/tick" to="." method="_on_tick_timeout"]
+[connection signal="toggled" from="top2/Play" to="." method="_on_play_toggled"]
 [connection signal="toggled" from="top2/Record" to="." method="_on_record_toggled"]
 [connection signal="toggled" from="top2/Metronome" to="." method="_on_metronome_toggled"]
-[connection signal="timeout" from="top2/tick" to="." method="_on_tick_timeout"]
 [connection signal="text_changed" from="top2/bpm" to="." method="_on_bpm_text_changed"]
 [connection signal="pressed" from="top2/signature_1/signature_1_plus" to="." method="_on_signature_1_plus_pressed"]
 [connection signal="pressed" from="top2/signature_1/signature_1_minus" to="." method="_on_signature_1_minus_pressed"]
 [connection signal="pressed" from="top2/signature_2/signature_2_plus" to="." method="_on_signature_2_plus_pressed"]
 [connection signal="pressed" from="top2/signature_2/signature_2_minus" to="." method="_on_signature_2_minus_pressed"]
+[connection signal="pressed" from="top2/Channel/channel_plus" to="." method="_on_channel_plus_pressed"]
+[connection signal="pressed" from="top2/Channel/channel_minus" to="." method="_on_channel_minus_pressed"]
 [connection signal="toggled" from="bottom/settings" to="bottom" method="_on_settings_toggled"]
 [connection signal="toggled" from="bottom/control/Key_settings" to="." method="_on_check_box_toggled"]
 [connection signal="toggled" from="bottom/control/Controls" to="." method="_on_check_box_2_toggled"]

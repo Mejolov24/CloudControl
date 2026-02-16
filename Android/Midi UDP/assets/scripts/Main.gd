@@ -21,6 +21,8 @@ var total_buttons : int = 0
 @export var semitone_text : Label
 @export var scale_selector : OptionButton
 @export var slider : VSlider
+@export var record_button : CheckBox
+@export var play_button : CheckBox
 @export var button_scene : PackedScene
 @export var stream_player : PackedScene
 @export var button_icons : Array[CompressedTexture2D]
@@ -41,6 +43,7 @@ var total_buttons : int = 0
 @export var metronome_player : AudioStreamPlayer
 @export var signature_text_1 : Label
 @export var signature_text_2 : Label
+@export var channel_text_1 : Label
 var signature_1 : int = 4
 var signature_2 : int = 4
 var metronome_enabled : bool = false
@@ -54,10 +57,20 @@ var ip_address : String
 var port : int = 700
 var udp = PacketPeerUDP.new()
 
+var playing : bool = false
+var looping : bool = false
 var about_to_record : bool = false
+var about_to_play : bool = false
 var recording : bool = false
 var record : Array[NoteEvent] = []
 var record_start_t : float = 0.0
+var record_ch : int = 0
+var recording_size_ms : float = 0.0
+var playback_start_t : float = 0.0
+var playback_ch : int = 0
+var playback_t : float = 0.0
+var playback_anim_t : float = 0.0
+var playback_index : int = 0
 var current_t : float = 0.0
 
 func _ready() -> void:
@@ -83,11 +96,32 @@ func send_data(data_array: Array):
 var hided_grid : bool = false #check if we already tweened menu, used in startup
 func _process(delta: float) -> void:
 	current_t = Time.get_ticks_msec()
+	
+	if playing : playback_t = current_t
+	
+	
+	if about_to_play and not about_to_record:
+		record.sort_custom(func(a, b): return a.time < b.time)
+		playback_start_t = current_t
+		playback_index = 0
+		playing = true
+		about_to_play = false
+	
 	if about_to_record and current_beat == signature_1:
+		record_start_t = current_t
 		recording = true
 		about_to_record = false
 		if !metronome_enabled:
 			tick.stop()
+		if record != [] and recording_size_ms != 0: 
+			record.sort_custom(func(a, b): return a.time < b.time)
+			playback_start_t = current_t
+			playback_index = 0
+			playing = true
+			about_to_play = false
+	
+	if  playing:
+		playback()
 	
 	if !hided_grid:
 		TweeningSystem.ui_tweener_handler(true,grid,Vector2(0,-600), 0,0)
@@ -116,7 +150,7 @@ func get_note_name(midi_number: int) -> String:
 	return notes[note_index]
 func _on_note_pressed(note):
 	send_data( [0x90,  note, 127] )
-	if recording: Record(true,note,record_start_t - current_t)
+	if recording: Record(true,note,current_t - record_start_t,record_ch)
 	
 	if sound:
 		var stream = stream_player.instantiate()
@@ -130,15 +164,16 @@ func _on_note_pressed(note):
 
 func _on_note_released(note : int ):
 	send_data([0x80, note, 0])
-	if recording: Record(false,note,record_start_t - current_t)
+	if recording: Record(false,note,current_t - record_start_t,record_ch)
 	
 	if not sustain and sound: # stream player deletion, check if we do not have sustain.
 		var stream = get_node(str(note))
-		stream.name = "null"
-		var tween = create_tween()
-		tween.tween_property(stream,"volume_db",-80,3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
-		tween.tween_property(stream,"delete",true,0.1)
-	
+		if stream:
+			stream.name = "null"
+			var tween = create_tween()
+			tween.tween_property(stream,"volume_db",-80,3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+			tween.tween_property(stream,"delete",true,0.1)
+
 func set_sustain(is_on: bool):
 	var value = 127 if is_on else 0
 	sustain = is_on
@@ -213,8 +248,8 @@ func calculate_note(note : int ,octave_ : int):
 	return note + semitone + (12 * (octave_ + octave))
 
 
-func Record(_note_state : bool = false, _pitch: int = 60, _time: float = 0.0, _velocity: int = 127):
-	record.append(NoteEvent.new(_note_state, _pitch, _time, _velocity))
+func Record(_note_state : bool = false, _note: int = 60, _time: float = 0.0, _velocity: int = 127):
+	record.append(NoteEvent.new(_note_state, _note, _time, _velocity))
 
 
 func _on_osc_ip_text_changed(new_text: String) -> void:
@@ -300,6 +335,37 @@ func _on_pitch_bend_value_changed(value: float) -> void:
 		for i in nodes:
 			if i is AudioStreamPlayer:
 				i.pitch_scale = i.base_pitch * bend_pitch_multiplier
+
+func playback():
+	if recording_size_ms <= 0:
+		return
+	
+	
+	var current_playback_t : float = current_t - playback_start_t
+	
+	if current_playback_t >= recording_size_ms:
+		if looping:
+			playback_index = 0
+			playback_start_t = current_t
+		else:
+			playback_index = 0
+			playing = false
+			recording = false
+			play_button.set_pressed_no_signal(false)
+			record_button.set_pressed_no_signal(false)
+	
+	print(str(playback_index))
+	if record != []:
+		while playback_index < record.size():
+			var event = record[playback_index]
+			if current_playback_t >= event.time:
+				if event.note_state:
+					_on_note_pressed(event.note)
+				else:
+					_on_note_released(event.note)
+				playback_index += 1
+			else:
+				break
 
 func _on_check_box_toggled(toggled_on: bool) -> void:
 	TweeningSystem.ui_tweener_handler(toggled_on,right,Vector2(-220,0), 0.3,0.2 ,0,false)
@@ -393,5 +459,24 @@ func _on_record_toggled(toggled_on: bool) -> void:
 		current_beat = 0
 		about_to_record = toggled_on
 	else:
+		if recording_size_ms == 0:
+			recording_size_ms = current_t - record_start_t
 		recording = toggled_on
 		print(record)
+
+
+func _on_channel_plus_pressed() -> void:
+	record_ch += 1
+	channel_text_1.text = str(record_ch)
+
+func _on_channel_minus_pressed() -> void:
+	record_ch -= 1
+	channel_text_1.text = str(record_ch)
+
+
+func _on_play_toggled(toggled_on: bool) -> void:
+	#if record_ch != playback_ch:
+	if toggled_on:
+		about_to_play = true
+	else:
+		playing = false

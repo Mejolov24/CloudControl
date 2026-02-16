@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://ng8c7l524kn7"]
+[gd_scene load_steps=9 format=3 uid="uid://ng8c7l524kn7"]
 
 [ext_resource type="Script" uid="uid://cjvr02ig8ckof" path="res://assets/scripts/button.gd" id="1_0kkfq"]
 [ext_resource type="Texture2D" uid="uid://726loubhf0xr" path="res://assets/icons/both.svg" id="2_0kkfq"]
@@ -12,6 +12,18 @@ shader_parameter/alpha_multiplier = 1.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0kkfq"]
 size = Vector2(165, 165)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_15xtt"]
+bg_color = Color(1, 1, 1, 0)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0.13333334, 0.25882354, 1, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
 
 [node name="0" type="Control"]
 layout_mode = 3
@@ -51,6 +63,17 @@ scale = Vector2(0.9090909, 0.9090909)
 texture_normal = ExtResource("2_0kkfq")
 shape = SubResource("RectangleShape2D_0kkfq")
 passby_press = true
+
+[node name="outline" type="Panel" parent="."]
+visible = false
+layout_mode = 0
+offset_left = -64.0
+offset_top = -63.999985
+offset_right = 64.0
+offset_bottom = 64.000015
+pivot_offset = Vector2(64, 64)
+theme = ExtResource("2_aoful")
+theme_override_styles/panel = SubResource("StyleBoxFlat_15xtt")
 
 [connection signal="pressed" from="TouchScreenButton" to="." method="_on_touch_screen_button_pressed"]
 [connection signal="released" from="TouchScreenButton" to="." method="_on_touch_screen_button_released"]
