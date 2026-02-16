@@ -27,11 +27,25 @@ var total_buttons : int = 0
 @export var ui_theme : Theme
 @export var center : Control
 @export var top : Control
+@export var top2 : Control
 @export var bottom : Control
 @export var left : Control
 @export var right : Control
 @export var color_picker : Control
 @export var graphs : Control
+@export var settings_buttons : Control
+@export var tick : Timer
+@export var tock : Timer
+@export var tick_sfx : AudioStream
+@export var tock_sfx : AudioStream
+@export var metronome_player : AudioStreamPlayer
+@export var signature_text_1 : Label
+@export var signature_text_2 : Label
+var signature_1 : int = 4
+var signature_2 : int = 4
+var metronome_enabled : bool = false
+var bpm : int = 120
+var current_beat : int = 0
 var sustain : bool = false
 var midi_on : bool = false
 var sound : bool = true
@@ -39,6 +53,13 @@ var bend_latch : bool = false
 var ip_address : String
 var port : int = 700
 var udp = PacketPeerUDP.new()
+
+var about_to_record : bool = false
+var recording : bool = false
+var record : Array[NoteEvent] = []
+var record_start_t : float = 0.0
+var current_t : float = 0.0
+
 func _ready() -> void:
 	grid.add_theme_constant_override("v_separation", 25)
 	grid.add_theme_constant_override("h_separation", 25)
@@ -48,6 +69,7 @@ func _ready() -> void:
 		var scale_name = all_scale_names[i]
 		scale_selector.add_item(scale_name)
 	scale_selector.select(1)
+	tick.wait_time = 60.0/bpm
 	#hiding grid in case before update check
 
 
@@ -60,6 +82,13 @@ func send_data(data_array: Array):
 		packet_queue.append(data_array)
 var hided_grid : bool = false #check if we already tweened menu, used in startup
 func _process(delta: float) -> void:
+	current_t = Time.get_ticks_msec()
+	if about_to_record and current_beat == signature_1:
+		recording = true
+		about_to_record = false
+		if !metronome_enabled:
+			tick.stop()
+	
 	if !hided_grid:
 		TweeningSystem.ui_tweener_handler(true,grid,Vector2(0,-600), 0,0)
 		hided_grid = true
@@ -87,6 +116,8 @@ func get_note_name(midi_number: int) -> String:
 	return notes[note_index]
 func _on_note_pressed(note):
 	send_data( [0x90,  note, 127] )
+	if recording: Record(true,note,record_start_t - current_t)
+	
 	if sound:
 		var stream = stream_player.instantiate()
 		stream.pitch_scale = pow(2.0, (note - 69.0) / 12.0)
@@ -99,6 +130,8 @@ func _on_note_pressed(note):
 
 func _on_note_released(note : int ):
 	send_data([0x80, note, 0])
+	if recording: Record(false,note,record_start_t - current_t)
+	
 	if not sustain and sound: # stream player deletion, check if we do not have sustain.
 		var stream = get_node(str(note))
 		stream.name = "null"
@@ -178,6 +211,11 @@ func reload_buttons(_collumns: int, _rows : int):
 
 func calculate_note(note : int ,octave_ : int):
 	return note + semitone + (12 * (octave_ + octave))
+
+
+func Record(_note_state : bool = false, _pitch: int = 60, _time: float = 0.0, _velocity: int = 127):
+	record.append(NoteEvent.new(_note_state, _pitch, _time, _velocity))
+
 
 func _on_osc_ip_text_changed(new_text: String) -> void:
 	ip_address = new_text
@@ -292,3 +330,68 @@ func _on_button_toggled(toggled_on: bool) -> void:
 
 func _on_check_box_5_toggled(toggled_on: bool) -> void:
 	TweeningSystem.ui_tweener_handler(toggled_on,graphs,Vector2(0,-120), 0.3,0.2 ,0,false)
+
+
+
+func _on_check_box_6_toggled(toggled_on: bool) -> void:
+	for node in settings_buttons.get_children():
+		if node.name == "Key_settings" or node.name == "Connection" or node.name == "Colors":
+			node.button_pressed = false
+			node.disabled = toggled_on
+	TweeningSystem.ui_tweener_handler(toggled_on,top2,Vector2(0,70), 0.3,0.2,0,false)
+
+
+func _on_tick_timeout() -> void:
+	if current_beat == signature_1:
+		current_beat = 0
+	if current_beat == 0:
+		metronome_player.stream = tick_sfx
+	else:
+		metronome_player.stream = tock_sfx
+	metronome_player.play()
+	current_beat += 1
+func _on_signature_1_plus_pressed() -> void:
+	signature_1 += 1
+	signature_text_1.text = str(signature_1)
+	current_beat = 0
+
+
+func _on_signature_1_minus_pressed() -> void:
+	signature_1 -= 1
+	signature_text_1.text = str(signature_1)
+	current_beat = 0
+
+
+func _on_signature_2_plus_pressed() -> void:
+	signature_2 += 1
+	signature_text_2.text = str(signature_2)
+
+
+func _on_signature_2_minus_pressed() -> void:
+	signature_2 -= 1
+	signature_text_2.text = str(signature_2)
+
+
+func _on_bpm_text_changed(new_text: String) -> void:
+	var v_bpm = new_text.to_int()
+	if v_bpm:
+		bpm = v_bpm
+	tick.wait_time = 60.0/bpm
+
+
+func _on_metronome_toggled(toggled_on: bool) -> void:
+	metronome_enabled = toggled_on
+	if toggled_on:
+		tick.start()
+	else:
+		tick.stop()
+
+
+func _on_record_toggled(toggled_on: bool) -> void:
+	if !recording:
+		tick.start()
+		current_beat = 0
+		about_to_record = toggled_on
+	else:
+		recording = toggled_on
+		print(record)

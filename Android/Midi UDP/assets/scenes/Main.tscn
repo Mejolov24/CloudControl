@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://cbwtr0wmttotn"]
+[gd_scene load_steps=17 format=3 uid="uid://cbwtr0wmttotn"]
 
 [ext_resource type="Script" uid="uid://dl88nn61xd6cj" path="res://assets/scripts/Main.gd" id="1_npkpr"]
 [ext_resource type="PackedScene" uid="uid://ng8c7l524kn7" path="res://assets/scenes/Button.tscn" id="2_eruk6"]
@@ -9,6 +9,8 @@
 [ext_resource type="Texture2D" uid="uid://c715t8qjwxacl" path="res://assets/icons/circle.svg" id="6_cb1w8"]
 [ext_resource type="Script" uid="uid://b2sd7bev83ssl" path="res://assets/scripts/oscilloscope.gd" id="8_ajan2"]
 [ext_resource type="Texture2D" uid="uid://bhoj6bnrhgqyl" path="res://assets/icons/template.svg" id="8_cb1w8"]
+[ext_resource type="AudioStream" uid="uid://ds3okvkmi434j" path="res://assets/audio/tick.mp3" id="8_npyhb"]
+[ext_resource type="AudioStream" uid="uid://c6heqc3dtnbxa" path="res://assets/audio/tock.mp3" id="9_0lpbn"]
 [ext_resource type="Script" uid="uid://drc13lsqramsr" path="res://assets/scripts/ui_button.gd" id="9_ittna"]
 [ext_resource type="Shader" uid="uid://dqowy258xptdg" path="res://assets/scenes/brightness.gdshader" id="10_cfala"]
 [ext_resource type="Script" uid="uid://xc1x8vgq2e0q" path="res://assets/scripts/github_release_checker.gd" id="12_0tkjb"]
@@ -19,7 +21,7 @@
 shader = ExtResource("10_cfala")
 shader_parameter/alpha_multiplier = 2.000000095
 
-[node name="Main" type="CanvasLayer" node_paths=PackedStringArray("grid", "octave_number", "columns_text", "rows_text", "semitone_text", "scale_selector", "slider", "center", "top", "bottom", "left", "right", "color_picker", "graphs")]
+[node name="Main" type="CanvasLayer" node_paths=PackedStringArray("grid", "octave_number", "columns_text", "rows_text", "semitone_text", "scale_selector", "slider", "center", "top", "top2", "bottom", "left", "right", "color_picker", "graphs", "settings_buttons", "tick", "tock", "metronome_player", "signature_text_1", "signature_text_2")]
 script = ExtResource("1_npkpr")
 grid = NodePath("center/CenterContainer/GridContainer")
 octave_number = NodePath("right/octave_changer/octave")
@@ -34,11 +36,20 @@ button_icons = Array[CompressedTexture2D]([ExtResource("4_3qypx"), ExtResource("
 ui_theme = ExtResource("2_xt100")
 center = NodePath("center")
 top = NodePath("top")
+top2 = NodePath("top2")
 bottom = NodePath("bottom")
 left = NodePath("left")
 right = NodePath("right")
 color_picker = NodePath("color_picker")
 graphs = NodePath("graphs")
+settings_buttons = NodePath("bottom/control")
+tick = NodePath("top2/tick")
+tock = NodePath("")
+tick_sfx = ExtResource("8_npyhb")
+tock_sfx = ExtResource("9_0lpbn")
+metronome_player = NodePath("top2/metronome_player")
+signature_text_1 = NodePath("top2/signature_1/current_signature")
+signature_text_2 = NodePath("top2/signature_2/current_signature")
 
 [node name="center" type="Control" parent="."]
 layout_mode = 3
@@ -66,6 +77,7 @@ grow_vertical = 2
 layout_mode = 2
 
 [node name="top" type="Control" parent="."]
+visible = false
 layout_mode = 3
 anchors_preset = 5
 anchor_left = 0.5
@@ -104,6 +116,140 @@ offset_right = 22.0
 offset_bottom = 31.0
 button_pressed = true
 text = "sound"
+
+[node name="top2" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -20.0
+offset_right = 20.0
+offset_bottom = 40.0
+grow_horizontal = 2
+
+[node name="Record" type="CheckBox" parent="top2"]
+layout_mode = 0
+offset_left = -492.0
+offset_top = -64.0
+offset_right = -415.0
+offset_bottom = -6.0
+theme = ExtResource("2_xt100")
+text = "🔴"
+alignment = 1
+
+[node name="Metronome" type="CheckBox" parent="top2"]
+layout_mode = 0
+offset_left = -348.0
+offset_top = -64.0
+offset_right = -271.0
+offset_bottom = -6.0
+theme = ExtResource("2_xt100")
+text = "⏱️"
+alignment = 1
+
+[node name="tick" type="Timer" parent="top2"]
+
+[node name="metronome_player" type="AudioStreamPlayer" parent="top2"]
+volume_db = -5.0
+
+[node name="bpm" type="LineEdit" parent="top2"]
+layout_mode = 0
+offset_left = -236.0
+offset_top = -64.0
+offset_right = -92.0
+offset_bottom = -6.0
+theme = ExtResource("2_xt100")
+text = "120"
+placeholder_text = "BPM"
+alignment = 1
+
+[node name="signature_1" type="Control" parent="top2"]
+anchors_preset = 0
+offset_left = -20.0
+offset_top = -112.0
+offset_right = 20.0
+offset_bottom = -72.0
+
+[node name="current_signature" type="Label" parent="top2/signature_1"]
+layout_mode = 0
+offset_left = -11.000006
+offset_top = 50.31534
+offset_right = 44.999992
+offset_bottom = 100.31534
+theme = ExtResource("2_xt100")
+text = "4"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="signature_1_plus" type="Button" parent="top2/signature_1"]
+layout_mode = 0
+offset_left = 68.99999
+offset_top = 106.31534
+offset_right = 98.0
+offset_bottom = 164.31534
+rotation = -9.424778
+scale = Vector2(1.0143571, 1.005437)
+theme = ExtResource("2_xt100")
+text = "<"
+
+[node name="signature_1_minus" type="Button" parent="top2/signature_1"]
+layout_mode = 0
+offset_left = -3.0000057
+offset_top = 106.31534
+offset_right = 25.999994
+offset_bottom = 164.31534
+rotation = -3.1415927
+theme = ExtResource("2_xt100")
+text = ">"
+
+[node name="dash" type="Label" parent="top2"]
+layout_mode = 0
+offset_left = 52.0
+offset_top = -64.0
+offset_right = 92.0
+offset_bottom = -14.0
+theme = ExtResource("2_xt100")
+text = "/"
+horizontal_alignment = 1
+
+[node name="signature_2" type="Control" parent="top2"]
+anchors_preset = 0
+offset_left = 124.0
+offset_top = -112.0
+offset_right = 164.0
+offset_bottom = -72.0
+
+[node name="current_signature" type="Label" parent="top2/signature_2"]
+layout_mode = 0
+offset_left = -11.000006
+offset_top = 50.31534
+offset_right = 44.999992
+offset_bottom = 100.31534
+theme = ExtResource("2_xt100")
+text = "4"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="signature_2_plus" type="Button" parent="top2/signature_2"]
+layout_mode = 0
+offset_left = 68.99999
+offset_top = 106.31534
+offset_right = 98.0
+offset_bottom = 164.31534
+rotation = -9.424778
+scale = Vector2(1.0143571, 1.005437)
+theme = ExtResource("2_xt100")
+text = "<"
+
+[node name="signature_2_minus" type="Button" parent="top2/signature_2"]
+layout_mode = 0
+offset_left = -3.0000057
+offset_top = 106.31534
+offset_right = 25.999994
+offset_bottom = 164.31534
+rotation = -3.1415927
+theme = ExtResource("2_xt100")
+text = ">"
 
 [node name="bottom" type="Control" parent="."]
 layout_mode = 3
@@ -148,7 +294,7 @@ offset_left = -192.0
 offset_top = -80.0
 offset_right = 448.0
 
-[node name="CheckBox" type="CheckBox" parent="bottom/control"]
+[node name="Key_settings" type="CheckBox" parent="bottom/control"]
 z_index = -1
 layout_mode = 0
 offset_left = -72.0
@@ -159,7 +305,7 @@ mouse_filter = 2
 theme = ExtResource("2_xt100")
 text = "🎹"
 
-[node name="CheckBox2" type="CheckBox" parent="bottom/control"]
+[node name="Controls" type="CheckBox" parent="bottom/control"]
 z_index = -1
 layout_mode = 0
 offset_left = -72.0
@@ -170,7 +316,7 @@ mouse_filter = 2
 theme = ExtResource("2_xt100")
 text = "🎛️"
 
-[node name="CheckBox3" type="CheckBox" parent="bottom/control"]
+[node name="Connection" type="CheckBox" parent="bottom/control"]
 z_index = -1
 layout_mode = 0
 offset_left = -72.0
@@ -181,7 +327,7 @@ mouse_filter = 2
 theme = ExtResource("2_xt100")
 text = "🛜"
 
-[node name="CheckBox5" type="CheckBox" parent="bottom/control"]
+[node name="Graphs" type="CheckBox" parent="bottom/control"]
 z_index = -1
 layout_mode = 0
 offset_left = -72.0
@@ -192,7 +338,18 @@ mouse_filter = 2
 theme = ExtResource("2_xt100")
 text = "📈"
 
-[node name="CheckBox4" type="CheckBox" parent="bottom/control"]
+[node name="Recordings" type="CheckBox" parent="bottom/control"]
+z_index = -1
+layout_mode = 0
+offset_left = -72.0
+offset_top = 8.0
+offset_right = 5.0
+offset_bottom = 66.0
+mouse_filter = 2
+theme = ExtResource("2_xt100")
+text = "🔴"
+
+[node name="Colors" type="CheckBox" parent="bottom/control"]
 z_index = -1
 layout_mode = 0
 offset_left = -72.0
@@ -536,6 +693,7 @@ scale = Vector2(0.3, 0.3)
 joint_mode = 2
 antialiased = true
 script = ExtResource("8_ajan2")
+amplitude = 200.0
 x_scale = 3.0
 
 [node name="update_display" type="Control" parent="." node_paths=PackedStringArray("root", "label", "grid")]
@@ -592,12 +750,21 @@ text = "No
 [connection signal="text_changed" from="top/osc_port" to="." method="_on_osc_port_text_changed"]
 [connection signal="pressed" from="top/Button" to="." method="_on_button_pressed"]
 [connection signal="toggled" from="top/sound" to="." method="_on_sound_toggled"]
+[connection signal="toggled" from="top2/Record" to="." method="_on_record_toggled"]
+[connection signal="toggled" from="top2/Metronome" to="." method="_on_metronome_toggled"]
+[connection signal="timeout" from="top2/tick" to="." method="_on_tick_timeout"]
+[connection signal="text_changed" from="top2/bpm" to="." method="_on_bpm_text_changed"]
+[connection signal="pressed" from="top2/signature_1/signature_1_plus" to="." method="_on_signature_1_plus_pressed"]
+[connection signal="pressed" from="top2/signature_1/signature_1_minus" to="." method="_on_signature_1_minus_pressed"]
+[connection signal="pressed" from="top2/signature_2/signature_2_plus" to="." method="_on_signature_2_plus_pressed"]
+[connection signal="pressed" from="top2/signature_2/signature_2_minus" to="." method="_on_signature_2_minus_pressed"]
 [connection signal="toggled" from="bottom/settings" to="bottom" method="_on_settings_toggled"]
-[connection signal="toggled" from="bottom/control/CheckBox" to="." method="_on_check_box_toggled"]
-[connection signal="toggled" from="bottom/control/CheckBox2" to="." method="_on_check_box_2_toggled"]
-[connection signal="toggled" from="bottom/control/CheckBox3" to="." method="_on_check_box_3_toggled"]
-[connection signal="toggled" from="bottom/control/CheckBox5" to="." method="_on_check_box_5_toggled"]
-[connection signal="toggled" from="bottom/control/CheckBox4" to="." method="_on_check_box_4_toggled"]
+[connection signal="toggled" from="bottom/control/Key_settings" to="." method="_on_check_box_toggled"]
+[connection signal="toggled" from="bottom/control/Controls" to="." method="_on_check_box_2_toggled"]
+[connection signal="toggled" from="bottom/control/Connection" to="." method="_on_check_box_3_toggled"]
+[connection signal="toggled" from="bottom/control/Graphs" to="." method="_on_check_box_5_toggled"]
+[connection signal="toggled" from="bottom/control/Recordings" to="." method="_on_check_box_6_toggled"]
+[connection signal="toggled" from="bottom/control/Colors" to="." method="_on_check_box_4_toggled"]
 [connection signal="toggled" from="left/Button" to="." method="_on_button_toggled"]
 [connection signal="drag_ended" from="left/pitch_bend" to="." method="_on_v_slider_drag_ended"]
 [connection signal="value_changed" from="left/pitch_bend" to="." method="_on_pitch_bend_value_changed"]
