@@ -45,7 +45,7 @@ right = NodePath("right")
 color_picker = NodePath("color_picker")
 graphs = NodePath("graphs")
 settings_buttons = NodePath("bottom/control")
-tick = NodePath("top2/tick")
+tick = NodePath("")
 tick_sfx = ExtResource("8_npyhb")
 tock_sfx = ExtResource("9_0lpbn")
 metronome_player = NodePath("top2/metronome_player")
@@ -128,8 +128,6 @@ offset_left = -20.0
 offset_right = 20.0
 offset_bottom = 40.0
 grow_horizontal = 2
-
-[node name="tick" type="Timer" parent="top2"]
 
 [node name="metronome_player" type="AudioStreamPlayer" parent="top2"]
 volume_db = -5.0
@@ -811,7 +809,6 @@ text = "No
 [connection signal="text_changed" from="top/osc_port" to="." method="_on_osc_port_text_changed"]
 [connection signal="pressed" from="top/Button" to="." method="_on_button_pressed"]
 [connection signal="toggled" from="top/sound" to="." method="_on_sound_toggled"]
-[connection signal="timeout" from="top2/tick" to="." method="_on_tick_timeout"]
 [connection signal="toggled" from="top2/Play" to="." method="_on_play_toggled"]
 [connection signal="toggled" from="top2/Record" to="." method="_on_record_toggled"]
 [connection signal="toggled" from="top2/Metronome" to="." method="_on_metronome_toggled"]
