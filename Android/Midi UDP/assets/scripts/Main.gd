@@ -60,6 +60,8 @@ var udp = PacketPeerUDP.new()
 var current_channel : int = 0
 var current_t : float = 0.0
 
+var sequencer : SequencerEngine
+
 func _ready() -> void:
 	grid.add_theme_constant_override("v_separation", 25)
 	grid.add_theme_constant_override("h_separation", 25)
@@ -70,8 +72,11 @@ func _ready() -> void:
 		scale_selector.add_item(scale_name)
 	scale_selector.select(1)
 	
-	#hiding grid in case before update check
-
+	sequencer = SequencerEngine.new()
+	add_child(sequencer)
+	sequencer.setup_metronome(metronome_player,tick_sfx,tock_sfx,bpm,signature_1,signature_2)
+	sequencer.connect("send_note",recieve_note)
+	
 
 var packet_queue : Array = []
 var delay_timer : float = 0.0
@@ -85,7 +90,7 @@ var hided_grid : bool = false #check if we already tweened menu, used in startup
 
 
 func _process(delta: float) -> void:
-	current_t = Time.get_ticks_msec()
+	sequencer.update(Time.get_ticks_msec())
 	
 	
 	if !hided_grid:
@@ -113,38 +118,42 @@ func get_note_name(midi_number: int) -> String:
 	# MIDI note 60 is C4. 
 	var note_index = midi_number % 12
 	return notes[note_index]
+
+func handle_sound(note : int,on_off : bool):
+	if on_off:
+		if sound:
+			var stream = stream_player.instantiate()
+			stream.pitch_scale = pow(2.0, (note - 69.0) / 12.0)
+			stream.name = str(note)
+			var bend_semitones = ((slider.value - 8192.0) / 8192.0) * 2.0
+			var bend_pitch_multiplier = pow(2.0, bend_semitones / 12)
+			stream.base_pitch = stream.pitch_scale
+			stream.pitch_scale = stream.base_pitch * bend_pitch_multiplier
+			add_child(stream)
+	else:
+		if not sustain and sound: # stream player deletion, check if we do not have sustain.
+			var stream = get_node(str(note))
+			if stream:
+				stream.name = "null"
+				var tween = create_tween()
+				tween.tween_property(stream,"volume_db",-80,3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+				tween.tween_property(stream,"delete",true,0.1)
+
 func _on_note_pressed(note):
 	send_data( [0x90,  note, 127] )
-	
-	if sound:
-		var stream = stream_player.instantiate()
-		stream.pitch_scale = pow(2.0, (note - 69.0) / 12.0)
-		stream.name = str(note)
-		var bend_semitones = ((slider.value - 8192.0) / 8192.0) * 2.0
-		var bend_pitch_multiplier = pow(2.0, bend_semitones / 12)
-		stream.base_pitch = stream.pitch_scale
-		stream.pitch_scale = stream.base_pitch * bend_pitch_multiplier
-		add_child(stream)
+	sequencer.handle_note(note,true)
+	handle_sound(note,true)
 
 func _on_note_released(note : int ):
 	send_data([0x80, note, 0])
-	
-	if not sustain and sound: # stream player deletion, check if we do not have sustain.
-		var stream = get_node(str(note))
-		if stream:
-			stream.name = "null"
-			var tween = create_tween()
-			tween.tween_property(stream,"volume_db",-80,3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
-			tween.tween_property(stream,"delete",true,0.1)
+	sequencer.handle_note(note,false)
+	handle_sound(note,false)
 
 func play_note_animation(note : int):
 	pass
 
-func play_note_on(note : int):
-	pass
-
-func play_note_off(note : int):
-	pass
+func recieve_note(note : int, on_off : bool, channel : int):
+	handle_sound(note,on_off)
 
 func set_sustain(is_on: bool):
 	var value = 127 if is_on else 0
@@ -381,18 +390,15 @@ func _on_bpm_text_changed(new_text: String) -> void:
 
 
 func _on_metronome_toggled(toggled_on: bool) -> void:
-	metronome_enabled = toggled_on
-	if toggled_on:
-		pass
-	else:
-		pass
+	sequencer.set_metronome(toggled_on,bpm,signature_1,signature_2)
+
 
 
 func _on_record_toggled(toggled_on: bool) -> void:
 	if toggled_on:
-		pass
+		sequencer.start_recording()
 	else:
-		pass
+		sequencer.finish_recording()
 
 
 func _on_channel_plus_pressed() -> void:
@@ -406,6 +412,6 @@ func _on_channel_minus_pressed() -> void:
 
 func _on_play_toggled(toggled_on: bool) -> void:
 	if toggled_on:
-		pass
+		sequencer.start_playback()
 	else:
-		pass
+		sequencer.stop_playback()

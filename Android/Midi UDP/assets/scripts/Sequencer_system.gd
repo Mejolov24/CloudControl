@@ -41,23 +41,28 @@ var playback_state : PlaybackState = PlaybackState.IDLE
 var playback_mode : PlaybackMode = PlaybackMode.NONE
 var looping : bool = false
 var auto_stop : bool = false
+var metronome_bool : bool = false
 
 signal send_note(note : int,on_off : bool , channel : int)
 
-func _ready() -> void:
+
+func setup_metronome(streamplayer : AudioStreamPlayer,tick : AudioStream, tock : AudioStream, bpm_, Numerator : int, Denominator : int):
+	metronome_player = streamplayer
+	tick_sfx = tick
+	tock_sfx = tock
+	bpm = bpm_
+	signature_1 = Numerator
+	signature_2 = Denominator
 	metronome = Timer.new()
 	add_child(metronome)
+	metronome.wait_time = 60.0/bpm
 	metronome.connect("timeout",_Metronome_timeout)
-
 func update(time : float):
 	current_t = time
 	handle_states()
-
+	print(loaded_song)
+	print(playback_index)
 func handle_states():
-	if pending_state != PlaybackState.IDLE:
-		if current_beat == signature_1: 
-			set_playback_state(pending_state)
-			pending_state = PlaybackState.IDLE
 	match playback_state:
 		PlaybackState.RECORDING:
 			if playback_mode != PlaybackMode.FIRST_RECORD:
@@ -70,22 +75,33 @@ func start_recording():
 	record_start_t = current_t
 	pending_state = PlaybackState.RECORDING
 	set_playback_state(PlaybackState.COUNT_IN)
+	if loaded_song == []:
+		set_playback_mode(PlaybackMode.FIRST_RECORD)
+	else:
+		set_playback_mode(PlaybackMode.OVERDUB)
 func finish_recording():
 	if playback_mode ==  PlaybackMode.FIRST_RECORD:
 		loaded_song_t_ms = current_t - record_start_t
+func start_playback():
+	playback_start_t = current_t
+	pending_state = PlaybackState.PLAYING
+	set_playback_state(PlaybackState.COUNT_IN)
+func stop_playback():
+	set_playback_state(PlaybackState.IDLE)
 
 func set_channel(channel_ : int):
 	channel = channel_
 
 func set_metronome(active : bool, bpm_ : int, Numerator : int, Denominator : int):
 	bpm = bpm_
-	metronome_player.wait_time = 60.0/bpm
+	metronome.wait_time = 60.0/bpm
 	signature_1 = Numerator
 	signature_2 = Denominator
+	metronome_bool = active
 	if active:
-		metronome_player.start()
+		metronome.start()
 	else:
-		metronome_player.stop()
+		metronome.stop()
 
 func handle_note(note : int,on_off : bool):
 	if playback_state == PlaybackState.RECORDING:
@@ -99,7 +115,7 @@ func set_playback_state(state : PlaybackState):
 			playback_start_t = current_t
 		PlaybackState.COUNT_IN:
 			current_beat = 0
-			if metronome_player.is_stopped() : metronome_player.start()
+			if metronome.is_stopped() : metronome.start()
 		PlaybackState.PLAYING:
 			loaded_song.sort_custom(func(a, b): return a.time < b.time)
 			playback_start_t = current_t
@@ -146,6 +162,11 @@ func _playback():
 				set_playback_state(PlaybackState.IDLE)
 
 func _Metronome_timeout() -> void:
+	if pending_state != PlaybackState.IDLE:
+		if current_beat == signature_1: 
+			if !metronome_bool : metronome.stop()
+			set_playback_state(pending_state)
+			pending_state = PlaybackState.IDLE
 	if current_beat == signature_1:
 		current_beat = 0
 	if current_beat == 0:
