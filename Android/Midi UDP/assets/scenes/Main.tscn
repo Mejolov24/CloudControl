@@ -151,11 +151,30 @@ theme = ExtResource("2_xt100")
 text = "🔴"
 alignment = 1
 
+[node name="Loop" type="CheckBox" parent="top2"]
+layout_mode = 0
+offset_left = -372.0
+offset_top = -64.0
+offset_right = -295.0
+offset_bottom = -6.0
+theme = ExtResource("2_xt100")
+text = "🔁"
+alignment = 1
+
+[node name="Delete" type="Button" parent="top2"]
+layout_mode = 0
+offset_left = -284.0
+offset_top = -64.0
+offset_right = -207.0
+offset_bottom = -6.0
+theme = ExtResource("2_xt100")
+text = "🗑️"
+
 [node name="Metronome" type="CheckBox" parent="top2"]
 layout_mode = 0
-offset_left = -348.0
+offset_left = -188.0
 offset_top = -64.0
-offset_right = -271.0
+offset_right = -111.0
 offset_bottom = -6.0
 theme = ExtResource("2_xt100")
 text = "⏱️"
@@ -163,9 +182,9 @@ alignment = 1
 
 [node name="bpm" type="LineEdit" parent="top2"]
 layout_mode = 0
-offset_left = -236.0
+offset_left = -108.0
 offset_top = -64.0
-offset_right = -92.0
+offset_right = 36.0
 offset_bottom = -6.0
 theme = ExtResource("2_xt100")
 text = "120"
@@ -174,9 +193,9 @@ alignment = 1
 
 [node name="signature_1" type="Control" parent="top2"]
 anchors_preset = 0
-offset_left = -20.0
+offset_left = 108.0
 offset_top = -112.0
-offset_right = 20.0
+offset_right = 148.0
 offset_bottom = -72.0
 
 [node name="current_signature" type="Label" parent="top2/signature_1"]
@@ -213,9 +232,9 @@ text = ">"
 
 [node name="dash" type="Label" parent="top2"]
 layout_mode = 0
-offset_left = 52.0
+offset_left = 180.0
 offset_top = -64.0
-offset_right = 92.0
+offset_right = 220.0
 offset_bottom = -14.0
 theme = ExtResource("2_xt100")
 text = "/"
@@ -223,9 +242,9 @@ horizontal_alignment = 1
 
 [node name="signature_2" type="Control" parent="top2"]
 anchors_preset = 0
-offset_left = 124.0
+offset_left = 252.0
 offset_top = -112.0
-offset_right = 164.0
+offset_right = 292.0
 offset_bottom = -72.0
 
 [node name="current_signature" type="Label" parent="top2/signature_2"]
@@ -262,9 +281,9 @@ text = ">"
 
 [node name="Label" type="Label" parent="top2"]
 layout_mode = 0
-offset_left = 204.0
+offset_left = 332.0
 offset_top = -64.0
-offset_right = 250.0
+offset_right = 378.0
 offset_bottom = -8.0
 theme = ExtResource("2_xt100")
 text = "Ch"
@@ -272,9 +291,9 @@ vertical_alignment = 1
 
 [node name="Channel" type="Control" parent="top2"]
 anchors_preset = 0
-offset_left = 292.0
+offset_left = 420.0
 offset_top = -112.0
-offset_right = 332.0
+offset_right = 460.0
 offset_bottom = -72.0
 
 [node name="current_channel" type="Label" parent="top2/Channel"]
@@ -810,6 +829,8 @@ text = "No
 [connection signal="toggled" from="top/sound" to="." method="_on_sound_toggled"]
 [connection signal="toggled" from="top2/Play" to="." method="_on_play_toggled"]
 [connection signal="toggled" from="top2/Record" to="." method="_on_record_toggled"]
+[connection signal="toggled" from="top2/Loop" to="." method="_on_loop_toggled"]
+[connection signal="pressed" from="top2/Delete" to="." method="_on_delete_pressed"]
 [connection signal="toggled" from="top2/Metronome" to="." method="_on_metronome_toggled"]
 [connection signal="text_changed" from="top2/bpm" to="." method="_on_bpm_text_changed"]
 [connection signal="pressed" from="top2/signature_1/signature_1_plus" to="." method="_on_signature_1_plus_pressed"]

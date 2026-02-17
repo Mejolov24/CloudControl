@@ -1,6 +1,8 @@
 extends Node
 class_name SequencerEngine
+var original_bpm : int = 120
 var loaded_song : Array[NoteEvent] = []
+var cached_record : Array[NoteEvent] = []
 var loaded_song_t_ms : float = 0.0
 var record_start_t : float = 0.0
 var channel : int = 0
@@ -57,11 +59,12 @@ func setup_metronome(streamplayer : AudioStreamPlayer,tick : AudioStream, tock :
 	add_child(metronome)
 	metronome.wait_time = 60.0/bpm
 	metronome.connect("timeout",_Metronome_timeout)
-func update(time : float):
-	current_t = time
+func update(delta : float):
+	var scaled_delta = delta * bpm / original_bpm
+	current_t += scaled_delta * 1000 # miliseconds
 	handle_states()
-	print(loaded_song)
-	print(playback_index)
+	#print(loaded_song)
+	#print(playback_index)
 func handle_states():
 	match playback_state:
 		PlaybackState.RECORDING:
@@ -76,12 +79,28 @@ func start_recording():
 	pending_state = PlaybackState.RECORDING
 	set_playback_state(PlaybackState.COUNT_IN)
 	if loaded_song == []:
+		original_bpm = bpm
 		set_playback_mode(PlaybackMode.FIRST_RECORD)
 	else:
 		set_playback_mode(PlaybackMode.OVERDUB)
 func finish_recording():
 	if playback_mode ==  PlaybackMode.FIRST_RECORD:
 		loaded_song_t_ms = current_t - record_start_t
+	set_playback_state(PlaybackState.IDLE)
+
+func set_looping(value : bool):
+	looping = value
+
+func clear_song():
+	cached_record = []
+	loaded_song = []
+	set_playback_state(PlaybackState.IDLE)
+
+func init_recording():
+		loaded_song += cached_record
+		cached_record = []
+		loaded_song.sort_custom(func(a, b): return a.time < b.time)
+
 func start_playback():
 	playback_start_t = current_t
 	pending_state = PlaybackState.PLAYING
@@ -105,7 +124,7 @@ func set_metronome(active : bool, bpm_ : int, Numerator : int, Denominator : int
 
 func handle_note(note : int,on_off : bool):
 	if playback_state == PlaybackState.RECORDING:
-		loaded_song.append(NoteEvent.new(on_off,note,current_t - record_start_t,channel))
+		cached_record.append(NoteEvent.new(on_off,note,current_t - record_start_t,channel))
 
 func set_playback_state(state : PlaybackState):
 	playback_state = state
@@ -117,7 +136,7 @@ func set_playback_state(state : PlaybackState):
 			current_beat = 0
 			if metronome.is_stopped() : metronome.start()
 		PlaybackState.PLAYING:
-			loaded_song.sort_custom(func(a, b): return a.time < b.time)
+			init_recording()
 			playback_start_t = current_t
 			playback_index = 0
 		PlaybackState.RECORDING:
@@ -129,10 +148,10 @@ func set_playback_mode(mode : PlaybackMode):
 	match mode:
 	
 		PlaybackMode.OVERDUB:
-			loaded_song.sort_custom(func(a, b): return a.time < b.time)
+			init_recording()
 	
 		PlaybackMode.OVERRIDE:
-			loaded_song.sort_custom(func(a, b): return a.time < b.time)
+			init_recording()
 
 
 func _playback():
@@ -144,7 +163,7 @@ func _playback():
 	var current_playback_t : float = current_t - playback_start_t
 	
 	if loaded_song != []:
-		while playback_index < loaded_song.size():
+		while playback_index < loaded_song.size(): #and current_playback_t <= loaded_song_t_ms:
 			var event = loaded_song[playback_index]
 			if current_playback_t >= event.time:
 				if event.note_state:
@@ -158,8 +177,14 @@ func _playback():
 			if looping:
 				playback_index = 0
 				playback_start_t = current_t
+				init_recording()
+				if playback_state == PlaybackState.RECORDING:
+					record_start_t = current_t
+				
 			else:
 				set_playback_state(PlaybackState.IDLE)
+				init_recording()
+
 
 func _Metronome_timeout() -> void:
 	if pending_state != PlaybackState.IDLE:

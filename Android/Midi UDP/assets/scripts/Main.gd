@@ -90,8 +90,14 @@ var hided_grid : bool = false #check if we already tweened menu, used in startup
 
 
 func _process(delta: float) -> void:
-	sequencer.update(Time.get_ticks_msec())
+	sequencer.update(delta)
 	
+	if sequencer.playback_state != sequencer.PlaybackState.IDLE:
+		signature_text_1.text = str(sequencer.current_beat)
+	else:
+		signature_text_1.text = str(signature_1)
+		record_button.set_pressed_no_signal(false)
+		play_button.set_pressed_no_signal(false)
 	
 	if !hided_grid:
 		TweeningSystem.ui_tweener_handler(true,grid,Vector2(0,-600), 0,0)
@@ -364,33 +370,39 @@ func _on_signature_1_plus_pressed() -> void:
 	signature_1 += 1
 	signature_text_1.text = str(signature_1)
 	current_beat = 0
+	sequencer.set_metronome(metronome_enabled,bpm,signature_1,signature_2)
 
 
 func _on_signature_1_minus_pressed() -> void:
 	signature_1 -= 1
 	signature_text_1.text = str(signature_1)
 	current_beat = 0
+	sequencer.set_metronome(metronome_enabled,bpm,signature_1,signature_2)
 
 
 func _on_signature_2_plus_pressed() -> void:
 	signature_2 += 1
 	signature_text_2.text = str(signature_2)
+	sequencer.set_metronome(metronome_enabled,bpm,signature_1,signature_2)
 
 
 func _on_signature_2_minus_pressed() -> void:
 	signature_2 -= 1
 	signature_text_2.text = str(signature_2)
+	sequencer.set_metronome(metronome_enabled,bpm,signature_1,signature_2)
 
 
 func _on_bpm_text_changed(new_text: String) -> void:
 	var v_bpm = new_text.to_int()
 	if v_bpm:
 		bpm = v_bpm
+		sequencer.set_metronome(metronome_enabled,bpm,signature_1,signature_2)
 	
 
 
 func _on_metronome_toggled(toggled_on: bool) -> void:
-	sequencer.set_metronome(toggled_on,bpm,signature_1,signature_2)
+	metronome_enabled = toggled_on
+	sequencer.set_metronome(metronome_enabled,bpm,signature_1,signature_2)
 
 
 
@@ -415,3 +427,11 @@ func _on_play_toggled(toggled_on: bool) -> void:
 		sequencer.start_playback()
 	else:
 		sequencer.stop_playback()
+
+
+func _on_loop_toggled(toggled_on: bool) -> void:
+	sequencer.set_looping(toggled_on)
+
+
+func _on_delete_pressed() -> void:
+	sequencer.clear_song()
