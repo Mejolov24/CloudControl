@@ -21,7 +21,7 @@
 shader = ExtResource("10_cfala")
 shader_parameter/alpha_multiplier = 2.000000095
 
-[node name="Main" type="CanvasLayer" node_paths=PackedStringArray("grid", "octave_number", "columns_text", "rows_text", "semitone_text", "scale_selector", "slider", "record_button", "play_button", "center", "top", "top2", "bottom", "left", "right", "color_picker", "graphs", "settings_buttons", "tick", "metronome_player", "signature_text_1", "signature_text_2", "channel_text_1")]
+[node name="Main" type="CanvasLayer" node_paths=PackedStringArray("grid", "octave_number", "columns_text", "rows_text", "semitone_text", "scale_selector", "slider", "record_button", "play_button", "center", "top", "top2", "bottom", "left", "right", "color_picker", "graphs", "settings_buttons", "metronome_player", "signature_text_1", "signature_text_2", "channel_text_1")]
 script = ExtResource("1_npkpr")
 grid = NodePath("center/CenterContainer/GridContainer")
 octave_number = NodePath("right/octave_changer/octave")
@@ -45,7 +45,6 @@ right = NodePath("right")
 color_picker = NodePath("color_picker")
 graphs = NodePath("graphs")
 settings_buttons = NodePath("bottom/control")
-tick = NodePath("")
 tick_sfx = ExtResource("8_npyhb")
 tock_sfx = ExtResource("9_0lpbn")
 metronome_player = NodePath("top2/metronome_player")
