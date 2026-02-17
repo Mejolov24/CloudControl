@@ -138,7 +138,7 @@ func handle_sound(note : int,on_off : bool):
 			add_child(stream)
 	else:
 		if not sustain and sound: # stream player deletion, check if we do not have sustain.
-			var stream = get_node(str(note))
+			var stream = get_node_or_null(str(note))
 			if stream:
 				stream.name = "null"
 				var tween = create_tween()
@@ -362,7 +362,7 @@ func _on_check_box_6_toggled(toggled_on: bool) -> void:
 		if node.name == "Key_settings" or node.name == "Connection" or node.name == "Colors":
 			node.button_pressed = false
 			node.disabled = toggled_on
-	TweeningSystem.ui_tweener_handler(toggled_on,top2,Vector2(0,70), 0.3,0.2,0,false)
+	TweeningSystem.ui_tweener_handler(toggled_on,top2,Vector2(0,70), 0.2,0.1,0,false)
 
 
 

@@ -78,7 +78,6 @@ grow_vertical = 2
 layout_mode = 2
 
 [node name="top" type="Control" parent="."]
-visible = false
 layout_mode = 3
 anchors_preset = 5
 anchor_left = 0.5
@@ -169,6 +168,7 @@ offset_right = -207.0
 offset_bottom = -6.0
 theme = ExtResource("2_xt100")
 text = "🗑️"
+flat = true
 
 [node name="Metronome" type="CheckBox" parent="top2"]
 layout_mode = 0
@@ -715,7 +715,7 @@ anchor_bottom = 0.5
 offset_left = -168.0
 offset_top = 324.0
 offset_right = 176.0
-offset_bottom = 956.0
+offset_bottom = 1003.99994
 grow_horizontal = 2
 grow_vertical = 2
 scale = Vector2(0.8, 0.8)

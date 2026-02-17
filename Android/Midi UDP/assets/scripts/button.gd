@@ -4,6 +4,7 @@ var tween : Tween
 func _ready() -> void:
 	if $ColorRect.material:
 		$ColorRect.material = $ColorRect.material.duplicate()
+	#animate_preview()
 
 func _on_touch_screen_button_pressed() -> void:
 	if tween and tween.is_valid():
@@ -21,3 +22,11 @@ func _on_touch_screen_button_released() -> void:
 	tween.set_trans(Tween.TRANS_SINE)
 	tween.tween_property(self,"scale",Vector2(1,1),0.1)
 	tween.tween_property($ColorRect,"material:shader_parameter/alpha_multiplier",1,0.1)
+
+func animate_preview(anticipation : float = 2):
+	tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_SINE)
+	tween.tween_property($outline,"scale",Vector2(1,1),anticipation)
+	tween.set_ease(Tween.EASE_IN)
+	tween.tween_property($outline,"modulate:a",0,0.4)
