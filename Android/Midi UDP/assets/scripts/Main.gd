@@ -160,6 +160,10 @@ func play_note_animation(note : int):
 
 func recieve_note(note : int, on_off : bool, channel : int):
 	handle_sound(note,on_off)
+	if on_off:
+		send_data( [0x90,  note, 127] )
+	else:
+		send_data([0x80, note, 0])
 
 func set_sustain(is_on: bool):
 	var value = 127 if is_on else 0
