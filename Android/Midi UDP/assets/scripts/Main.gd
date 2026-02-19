@@ -76,7 +76,7 @@ func _ready() -> void:
 	add_child(sequencer)
 	sequencer.setup_metronome(metronome_player,tick_sfx,tock_sfx,bpm,signature_1,signature_2)
 	sequencer.connect("send_note",recieve_note)
-	
+	sequencer.connect("send_animation",recieve_animation)
 
 var packet_queue : Array = []
 var delay_timer : float = 0.0
@@ -155,8 +155,13 @@ func _on_note_released(note : int ):
 	sequencer.handle_note(note,false)
 	handle_sound(note,false)
 
-func play_note_animation(note : int):
-	pass
+func recieve_animation(note : int, on_off : bool, channel : int):
+		for i in range(total_buttons):
+			if on_off:
+				var wrapper = grid.get_children()[i]
+				var button = wrapper.get_children()[0]
+				if button.name == str(note):
+					button.animate_preview(sequencer.animation_anticipation)
 
 func recieve_note(note : int, on_off : bool, channel : int):
 	handle_sound(note,on_off)
@@ -164,7 +169,6 @@ func recieve_note(note : int, on_off : bool, channel : int):
 		send_data( [0x90,  note, 127] )
 	else:
 		send_data([0x80, note, 0])
-
 func set_sustain(is_on: bool):
 	var value = 127 if is_on else 0
 	sustain = is_on

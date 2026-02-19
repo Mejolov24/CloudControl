@@ -3,6 +3,8 @@ class_name SequencerEngine
 var original_bpm : int = 120
 var loaded_song : Array[NoteEvent] = []
 var cached_record : Array[NoteEvent] = []
+var input_buffer : Array[NoteEvent] = []
+var buffer_start_t : float = 0.0
 var loaded_song_t_ms : float = 0.0
 var record_start_t : float = 0.0
 var channel : int = 0
@@ -13,17 +15,22 @@ var playback_t : float = 0.0
 var playback_anim_t : float = 0.0
 var playback_index : int = 0
 var current_t : float = 0.0
+var global_t : float = 0.0
 var current_beat : int = 0
 var signature_1 : int = 0
 var signature_2 : int = 0
 var bpm : int = 0
+var animation_index : int = 0
 
 var metronome : Timer
 @export var metronome_player : AudioStreamPlayer
 @export var tick_sfx : AudioStream
 @export var tock_sfx : AudioStream
+@export var buffer_end_t : float = 100.0 
+@export var animation_anticipation : float = 500.0 
 
-
+# All time units are based in miliseconds with float acurracy.
+# Update must be called in process and be provided with delta.
 
 enum PlaybackState {
 	IDLE,
@@ -41,12 +48,14 @@ enum PlaybackMode {
 var pending_state : PlaybackState = PlaybackState.IDLE
 var playback_state : PlaybackState = PlaybackState.IDLE
 var playback_mode : PlaybackMode = PlaybackMode.NONE
+
 var looping : bool = false
 var auto_stop : bool = false
 var metronome_bool : bool = false
+var paused : bool = false
 
 signal send_note(note : int,on_off : bool , channel : int)
-
+signal send_animation(note : int,on_off : bool , channel : int)
 
 func setup_metronome(streamplayer : AudioStreamPlayer,tick : AudioStream, tock : AudioStream, bpm_, Numerator : int, Denominator : int):
 	metronome_player = streamplayer
@@ -61,7 +70,9 @@ func setup_metronome(streamplayer : AudioStreamPlayer,tick : AudioStream, tock :
 	metronome.connect("timeout",_Metronome_timeout)
 func update(delta : float):
 	var scaled_delta = delta * bpm / original_bpm
-	current_t += scaled_delta * 1000 # miliseconds
+	global_t += scaled_delta * 1000
+	if not paused:
+		current_t += scaled_delta * 1000 # miliseconds
 	handle_states()
 	#print(loaded_song)
 	#print(playback_index)
@@ -72,6 +83,7 @@ func handle_states():
 				_playback()
 		PlaybackState.PLAYING:
 			if loaded_song != []:
+				_anim_playback()
 				_playback()
 
 func start_recording():
@@ -108,6 +120,12 @@ func start_playback():
 func stop_playback():
 	set_playback_state(PlaybackState.IDLE)
 
+func set_pause(pause : bool):
+	if pause:
+		paused = true
+	else:
+		paused = false
+
 func set_channel(channel_ : int):
 	channel = channel_
 
@@ -125,7 +143,13 @@ func set_metronome(active : bool, bpm_ : int, Numerator : int, Denominator : int
 func handle_note(note : int,on_off : bool):
 	if playback_state == PlaybackState.RECORDING:
 		cached_record.append(NoteEvent.new(on_off,note,current_t - record_start_t,channel))
-
+	input_buffer.append(NoteEvent.new(on_off,note,global_t,channel))
+	if input_buffer == []: 
+		buffer_start_t = global_t
+		buffer_end_t += global_t
+	else:
+		if global_t >= buffer_end_t:
+			input_buffer = []
 func set_playback_state(state : PlaybackState):
 	playback_state = state
 	match state:
@@ -139,6 +163,7 @@ func set_playback_state(state : PlaybackState):
 			init_recording()
 			playback_start_t = current_t
 			playback_index = 0
+			animation_index = 0
 		PlaybackState.RECORDING:
 			record_start_t = current_t
 			playback_start_t = current_t
@@ -153,6 +178,24 @@ func set_playback_mode(mode : PlaybackMode):
 		PlaybackMode.OVERRIDE:
 			init_recording()
 
+func _anim_playback():
+	if playback_state != PlaybackState.PLAYING and playback_state != PlaybackState.RECORDING:
+		return
+	if loaded_song_t_ms <= 0:
+		return
+	
+	var current_playback_t : float = current_t - playback_start_t# - animation_anticipation
+	
+	if loaded_song != []:
+		while animation_index < loaded_song.size(): #and current_playback_t <= loaded_song_t_ms:
+			var event = loaded_song[animation_index]
+			
+			if current_playback_t >= event.time:
+				if event.note_state:
+					emit_signal("send_animation", event.note,event.note_state,event.channel)
+				animation_index += 1
+			else:
+				break
 
 func _playback():
 	if playback_state != PlaybackState.PLAYING and playback_state != PlaybackState.RECORDING:
@@ -160,22 +203,29 @@ func _playback():
 	if loaded_song_t_ms <= 0:
 		return
 	
-	var current_playback_t : float = current_t - playback_start_t
+	var current_playback_t : float = current_t - playback_start_t# - animation_anticipation
 	
 	if loaded_song != []:
+	
 		while playback_index < loaded_song.size(): #and current_playback_t <= loaded_song_t_ms:
 			var event = loaded_song[playback_index]
-			if current_playback_t >= event.time:
+			
+			if current_playback_t >= event.time :
 				if event.note_state:
-					emit_signal("send_note", event.note,true,event.channel)
-				else:
-					emit_signal("send_note", event.note,false,event.channel)
+					emit_signal("send_note", event.note,event.note_state,event.channel)
 				playback_index += 1
 			else:
 				break
+			
+			var atleast_one_good : bool = false
+			for i in input_buffer:
+				if input_buffer[i].note == event.note: atleast_one_good = true
+				set_pause(atleast_one_good)
+			
 		if current_t - playback_start_t >= loaded_song_t_ms:
 			if looping:
 				playback_index = 0
+				animation_index = 0
 				playback_start_t = current_t
 				init_recording()
 				if playback_state == PlaybackState.RECORDING:

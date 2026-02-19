@@ -1,0 +1,37 @@
+[gd_scene load_steps=4 format=3 uid="uid://c7wku03hvcneu"]
+
+[ext_resource type="Script" uid="uid://damlaxq0vg5pm" path="res://button_anim.gd" id="1_6l40o"]
+[ext_resource type="Theme" uid="uid://d0ku8sc22vh5l" path="res://assets/others/ui.tres" id="2_fpfmt"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xakmv"]
+bg_color = Color(1, 1, 1, 0)
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+border_color = Color(0, 0.5321197, 1.4265122, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_6l40o")
+
+[node name="outline" type="Panel" parent="."]
+z_index = -4
+layout_mode = 0
+offset_left = -64.0
+offset_top = -63.999985
+offset_right = 64.0
+offset_bottom = 64.000015
+scale = Vector2(1e-05, 1e-05)
+pivot_offset = Vector2(64, 64)
+theme = ExtResource("2_fpfmt")
+theme_override_styles/panel = SubResource("StyleBoxFlat_xakmv")

@@ -1,5 +1,6 @@
 extends Control
 var tween : Tween 
+@export var animation : PackedScene
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	if $ColorRect.material:
@@ -24,9 +25,7 @@ func _on_touch_screen_button_released() -> void:
 	tween.tween_property($ColorRect,"material:shader_parameter/alpha_multiplier",1,0.1)
 
 func animate_preview(anticipation : float = 2):
-	tween = create_tween()
-	tween.set_ease(Tween.EASE_OUT)
-	tween.set_trans(Tween.TRANS_SINE)
-	tween.tween_property($outline,"scale",Vector2(1,1),anticipation)
-	tween.set_ease(Tween.EASE_IN)
-	tween.tween_property($outline,"modulate:a",0,0.4)
+	print("animating")
+	var scene = animation.instantiate()
+	add_child(scene)
+	scene.duration = anticipation
