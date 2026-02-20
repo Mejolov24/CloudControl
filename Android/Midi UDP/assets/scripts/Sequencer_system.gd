@@ -49,7 +49,6 @@ enum AnimationState {
 	WAIT,
 	PLAYING
 }
-var animation_start_t : float = 0.0
 var animation_index : int = 0
 var animation_state : AnimationState = AnimationState.WAIT
 var pending_state : PlaybackState = PlaybackState.IDLE
@@ -169,7 +168,7 @@ func set_playback_state(state : PlaybackState):
 			#here
 			animation_index = 0
 			var delay = (metronome.wait_time * 1000) * signature_1
-			animation_start_t = current_t + delay - animation_anticipation
+			playback_start_t = current_t + delay
 			animation_state = AnimationState.PLAYING
 		PlaybackState.PLAYING:
 			init_recording()
@@ -190,26 +189,18 @@ func set_playback_mode(mode : PlaybackMode):
 func _anim_playback():
 	if loaded_song_t_ms <= 0:
 		return
-	var current_playback_t : float = current_t - animation_start_t -500
+	var current_playback_t : float = current_t - playback_start_t
 	if loaded_song != []:
 		while animation_index < loaded_song.size():
 			var event = loaded_song[animation_index]
 			
-			if current_playback_t >= event.time:
+			if current_playback_t >= event.time - animation_anticipation:
 				if event.note_state:
 					emit_signal("send_animation", event.note,event.note_state,event.channel)
 				animation_index += 1
 			else:
 				break
-		if (current_t - animation_start_t) - animation_anticipation >= loaded_song_t_ms:
-			if looping:
-				animation_index = 0
-				animation_start_t = current_t - animation_anticipation
-			else:
-				animation_state = AnimationState.WAIT
 func _playback():
-	if not current_t > animation_start_t:
-		pass
 	if loaded_song_t_ms <= 0:
 		return
 	
