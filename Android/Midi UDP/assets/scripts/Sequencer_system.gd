@@ -190,7 +190,7 @@ func set_playback_mode(mode : PlaybackMode):
 func _anim_playback():
 	if loaded_song_t_ms <= 0:
 		return
-	var current_playback_t : float = current_t - animation_start_t
+	var current_playback_t : float = current_t - animation_start_t -500
 	if loaded_song != []:
 		while animation_index < loaded_song.size():
 			var event = loaded_song[animation_index]
@@ -201,9 +201,10 @@ func _anim_playback():
 				animation_index += 1
 			else:
 				break
-		if current_t - playback_start_t >= loaded_song_t_ms:
+		if (current_t - animation_start_t) - animation_anticipation >= loaded_song_t_ms:
 			if looping:
 				animation_index = 0
+				animation_start_t = current_t - animation_anticipation
 			else:
 				animation_state = AnimationState.WAIT
 func _playback():
