@@ -27,5 +27,5 @@ func _on_touch_screen_button_released() -> void:
 func animate_preview(anticipation : float = 2):
 	print("animating")
 	var scene = animation.instantiate()
+	scene.duration = anticipation / 1000
 	add_child(scene)
-	scene.duration = anticipation

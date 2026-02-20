@@ -20,14 +20,14 @@ var current_beat : int = 0
 var signature_1 : int = 0
 var signature_2 : int = 0
 var bpm : int = 0
-var animation_index : int = 0
+
 
 var metronome : Timer
 @export var metronome_player : AudioStreamPlayer
 @export var tick_sfx : AudioStream
 @export var tock_sfx : AudioStream
 @export var buffer_end_t : float = 100.0 
-@export var animation_anticipation : float = 500.0 
+@export var animation_anticipation : float = 2000.0 
 
 # All time units are based in miliseconds with float acurracy.
 # Update must be called in process and be provided with delta.
@@ -45,6 +45,13 @@ enum PlaybackMode {
 	OVERRIDE,  # replace loop content
 	TRAINING    # special evaluation mode
 }
+enum AnimationState {
+	WAIT,
+	PLAYING
+}
+var animation_start_t : float = 0.0
+var animation_index : int = 0
+var animation_state : AnimationState = AnimationState.WAIT
 var pending_state : PlaybackState = PlaybackState.IDLE
 var playback_state : PlaybackState = PlaybackState.IDLE
 var playback_mode : PlaybackMode = PlaybackMode.NONE
@@ -74,6 +81,7 @@ func update(delta : float):
 	if not paused:
 		current_t += scaled_delta * 1000 # miliseconds
 	handle_states()
+	_anim_playback()
 	#print(loaded_song)
 	#print(playback_index)
 func handle_states():
@@ -83,8 +91,8 @@ func handle_states():
 				_playback()
 		PlaybackState.PLAYING:
 			if loaded_song != []:
-				_anim_playback()
 				_playback()
+	
 
 func start_recording():
 	record_start_t = current_t
@@ -114,7 +122,6 @@ func init_recording():
 		loaded_song.sort_custom(func(a, b): return a.time < b.time)
 
 func start_playback():
-	playback_start_t = current_t
 	pending_state = PlaybackState.PLAYING
 	set_playback_state(PlaybackState.COUNT_IN)
 func stop_playback():
@@ -159,15 +166,17 @@ func set_playback_state(state : PlaybackState):
 		PlaybackState.COUNT_IN:
 			current_beat = 0
 			if metronome.is_stopped() : metronome.start()
+			#here
+			animation_index = 0
+			var delay = (metronome.wait_time * 1000) * signature_1
+			animation_start_t = current_t + delay - animation_anticipation
+			animation_state = AnimationState.PLAYING
 		PlaybackState.PLAYING:
 			init_recording()
-			playback_start_t = current_t
 			playback_index = 0
-			animation_index = 0
 		PlaybackState.RECORDING:
-			record_start_t = current_t
-			playback_start_t = current_t
 			playback_index = 0
+			record_start_t = current_t 
 func set_playback_mode(mode : PlaybackMode):
 	playback_mode = mode
 	match mode:
@@ -179,15 +188,11 @@ func set_playback_mode(mode : PlaybackMode):
 			init_recording()
 
 func _anim_playback():
-	if playback_state != PlaybackState.PLAYING and playback_state != PlaybackState.RECORDING:
-		return
 	if loaded_song_t_ms <= 0:
 		return
-	
-	var current_playback_t : float = current_t - playback_start_t# - animation_anticipation
-	
+	var current_playback_t : float = current_t - animation_start_t
 	if loaded_song != []:
-		while animation_index < loaded_song.size(): #and current_playback_t <= loaded_song_t_ms:
+		while animation_index < loaded_song.size():
 			var event = loaded_song[animation_index]
 			
 			if current_playback_t >= event.time:
@@ -196,10 +201,14 @@ func _anim_playback():
 				animation_index += 1
 			else:
 				break
-
+		if current_t - playback_start_t >= loaded_song_t_ms:
+			if looping:
+				animation_index = 0
+			else:
+				animation_state = AnimationState.WAIT
 func _playback():
-	if playback_state != PlaybackState.PLAYING and playback_state != PlaybackState.RECORDING:
-		return
+	if not current_t > animation_start_t:
+		pass
 	if loaded_song_t_ms <= 0:
 		return
 	
@@ -219,7 +228,7 @@ func _playback():
 			
 			var atleast_one_good : bool = false
 			for i in input_buffer:
-				if input_buffer[i].note == event.note: atleast_one_good = true
+				if i.note == event.note: atleast_one_good = true
 				set_pause(atleast_one_good)
 			
 		if current_t - playback_start_t >= loaded_song_t_ms:
@@ -240,6 +249,7 @@ func _Metronome_timeout() -> void:
 	if pending_state != PlaybackState.IDLE:
 		if current_beat == signature_1: 
 			if !metronome_bool : metronome.stop()
+			playback_start_t = current_t
 			set_playback_state(pending_state)
 			pending_state = PlaybackState.IDLE
 	if current_beat == signature_1:
